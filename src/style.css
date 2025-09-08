@@ -848,8 +848,3 @@ body {
 .min-w-full {
   min-width: 100%;
 }
-
-/* Rows */
-.rows-4 {
-  rows: 4;
-}

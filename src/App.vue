@@ -112,6 +112,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { User } from '@supabase/supabase-js'
 import { LogOut, Shield } from 'lucide-vue-next'
 import VideoPlayer from './components/VideoPlayer.vue'
 import AuthForm from './components/AuthForm.vue'
@@ -122,18 +123,13 @@ import { supabase } from './config/supabase'
 
 const { getCurrentUser, signOut, isAdmin } = useAuth()
 
-const currentUser = ref(null)
+const currentUser = ref<User | null>(null)
 const isUserAdmin = ref(false)
 const isLoading = ref(true)
 const showAdminPanel = ref(false)
 
 const handleAuthSuccess = async () => {
   await loadCurrentUser()
-}
-
-const handleEmailConfirmation = () => {
-  // Handle successful email confirmation
-  loadCurrentUser()
 }
 
 const handleSignOut = async () => {
@@ -177,12 +173,11 @@ onMounted(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const accessToken = hashParams.get('access_token')
     const refreshToken = hashParams.get('refresh_token')
-    const tokenType = hashParams.get('token_type')
     const type = hashParams.get('type')
     
     if (accessToken && refreshToken && type === 'signup') {
       try {
-        const { data, error } = await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
         })

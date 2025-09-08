@@ -203,10 +203,6 @@ const formatTime = (timeString: string) => {
   })
 }
 
-const getStatusClass = (status: string) => {
-  return `badge-${status}`
-}
-
 const getStatusText = (status: string) => {
   switch (status) {
     case 'confirmed':

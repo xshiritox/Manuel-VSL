@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { supabase } from '../config/supabase'
 import type { User } from '@supabase/supabase-js'
 

@@ -256,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Users, Calendar, Clock, CheckCircle, LogOut } from 'lucide-vue-next'
 import { useAppointments } from '../composables/useAppointments'
 import { supabase } from '../config/supabase'
@@ -264,7 +264,7 @@ import type { Appointment } from '../config/supabase'
 
 const emit = defineEmits(['signOut'])
 
-const { getAllAppointments, updateAppointmentStatus, loading } = useAppointments()
+const { updateAppointmentStatus, loading } = useAppointments()
 
 const appointments = ref<Appointment[]>([])
 const users = ref<any[]>([])
@@ -284,9 +284,28 @@ const stats = computed(() => {
 })
 
 const loadAppointments = async () => {
-  const result = await getAllAppointments()
-  if (result.success) {
-    appointments.value = result.data || []
+  try {
+    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: true })
+    if (error) throw error
+    appointments.value = data || []
+  } catch (error) {
+    console.error('Error loading appointments:', error)
+  }
+}
+
+const loadUsers = async () => {
+  try {
+    const { data: usersData, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, created_at')
+      .order('created_at', { ascending: false })
+    
+    if (usersError) throw usersError
+    
+    users.value = usersData || []
+    stats.value.totalUsers = usersData?.length || 0
+  } catch (error) {
+    console.error('Error loading users:', error)
   }
 }
 
@@ -314,10 +333,6 @@ const formatTime = (timeString: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-const getStatusClass = (status: string) => {
-  return `badge-${status}`
 }
 
 const getStatusText = (status: string) => {
