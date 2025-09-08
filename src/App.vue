@@ -180,6 +180,35 @@ const getUserName = () => {
 }
 
 onMounted(() => {
+  // Handle email confirmation from URL hash
+  const handleEmailConfirmation = async () => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    const tokenType = hashParams.get('token_type')
+    const type = hashParams.get('type')
+    
+    if (accessToken && refreshToken && type === 'signup') {
+      try {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        })
+        
+        if (error) throw error
+        
+        // Clear the hash from URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        
+        // Load user data
+        await loadCurrentUser()
+      } catch (error) {
+        console.error('Error setting session from email confirmation:', error)
+      }
+    }
+  }
+  
+  handleEmailConfirmation()
   loadCurrentUser()
   
   // Listen for auth state changes (including email confirmation)
