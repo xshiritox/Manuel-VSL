@@ -70,7 +70,7 @@
       </div>
 
       <!-- Appointments Table -->
-      <div class="card">
+      <div class="card mb-8">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-xl font-semibold" style="color: var(--color-gray-900);">Citas Programadas</h2>
         </div>
@@ -173,6 +173,84 @@
           </div>
         </div>
       </div>
+
+      <!-- Users Table -->
+      <div class="card">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold" style="color: var(--color-gray-900);">Usuarios Registrados</h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>
+                  Usuario
+                </th>
+                <th>
+                  Correo Electrónico
+                </th>
+                <th>
+                  Teléfono
+                </th>
+                <th>
+                  Fecha de Registro
+                </th>
+                <th>
+                  Tipo
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr v-for="user in users" :key="user.id">
+                <td class="whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <div class="avatar">
+                        <span>
+                          {{ getInitials(user.full_name || 'Usuario') }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium" style="color: var(--color-gray-900);">
+                        {{ user.full_name || 'Sin nombre' }}
+                      </div>
+                      <div class="text-sm" style="color: var(--color-gray-500);">
+                        ID: {{ user.id.substring(0, 8) }}...
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
+                  {{ user.email }}
+                </td>
+                <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
+                  {{ user.phone || 'No proporcionado' }}
+                </td>
+                <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
+                  {{ formatDate(user.created_at) }}
+                </td>
+                <td class="whitespace-nowrap">
+                  <span
+                    class="badge"
+                    :class="user.is_admin ? 'badge-confirmed' : 'badge-pending'"
+                  >
+                    {{ user.is_admin ? 'Administrador' : 'Usuario' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- Empty state -->
+          <div v-if="users.length === 0" class="text-center py-12">
+            <Users style="width: 48px; height: 48px; color: var(--color-gray-400); margin: 0 auto 16px;" />
+            <h3 class="text-lg font-medium mb-2" style="color: var(--color-gray-900);">No hay usuarios registrados</h3>
+            <p style="color: var(--color-gray-500);">Los usuarios aparecerán aquí cuando se registren en el sistema.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -181,6 +259,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { Users, Calendar, Clock, CheckCircle, LogOut } from 'lucide-vue-next'
 import { useAppointments } from '../composables/useAppointments'
+import { supabase } from '../config/supabase'
 import type { Appointment } from '../config/supabase'
 
 const emit = defineEmits(['signOut'])
@@ -188,9 +267,10 @@ const emit = defineEmits(['signOut'])
 const { getAllAppointments, updateAppointmentStatus, loading } = useAppointments()
 
 const appointments = ref<Appointment[]>([])
+const users = ref<any[]>([])
 
 const stats = computed(() => {
-  const totalUsers = new Set(appointments.value.map(a => a.user_id)).size
+  const totalUsers = users.value.length
   const totalAppointments = appointments.value.length
   const pendingAppointments = appointments.value.filter(a => a.status === 'pending').length
   const confirmedAppointments = appointments.value.filter(a => a.status === 'confirmed').length
@@ -262,5 +342,6 @@ const getInitials = (name: string) => {
 
 onMounted(() => {
   loadAppointments()
+  loadUsers()
 })
 </script>
