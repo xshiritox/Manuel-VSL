@@ -126,6 +126,7 @@ import AuthForm from './components/AuthForm.vue'
 import AppointmentCalendar from './components/AppointmentCalendar.vue'
 import AdminPanel from './components/AdminPanel.vue'
 import { useAuth } from './composables/useAuth'
+import { supabase } from './config/supabase'
 
 const { getCurrentUser, signOut, isAdmin } = useAuth()
 
@@ -136,6 +137,11 @@ const showAdminPanel = ref(false)
 
 const handleAuthSuccess = async () => {
   await loadCurrentUser()
+}
+
+const handleEmailConfirmation = () => {
+  // Handle successful email confirmation
+  loadCurrentUser()
 }
 
 const handleSignOut = async () => {
@@ -175,5 +181,16 @@ const getUserName = () => {
 
 onMounted(() => {
   loadCurrentUser()
+  
+  // Listen for auth state changes (including email confirmation)
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      await loadCurrentUser()
+    } else if (event === 'SIGNED_OUT') {
+      currentUser.value = null
+      isUserAdmin.value = false
+      showAdminPanel.value = false
+    }
+  })
 })
 </script>

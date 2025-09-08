@@ -126,6 +126,12 @@ export function useAuth() {
   // Escuchar cambios de autenticación
   supabase.auth.onAuthStateChange((event, session) => {
     user.value = session?.user || null
+    
+    // Handle email confirmation
+    if (event === 'SIGNED_IN' && session?.user) {
+      // User has been confirmed and signed in
+      console.log('Usuario confirmado y autenticado:', session.user.email)
+    }
   })
 
   return {
