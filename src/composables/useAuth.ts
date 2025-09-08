@@ -1,0 +1,171 @@
+import { ref, reactive } from 'vue'
+import { supabase } from '../config/supabase'
+import type { User } from '@supabase/supabase-js'
+
+const user = ref<User | null>(null)
+const loading = ref(false)
+const error = ref<string>('')
+
+export function useAuth() {
+  const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
+    loading.value = true
+    error.value = ''
+    
+    try {
+      console.log('Iniciando registro para:', email)
+      
+      // 1. First create the user in auth.users
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            ...(phone?.trim() ? { phone: phone.trim() } : {})
+          }
+        }
+      })
+      
+      if (signUpError) {
+        console.error('Error en signUp:', signUpError)
+        throw new Error('Error al crear el usuario: ' + signUpError.message)
+      }
+      
+      if (!data.user) {
+        throw new Error('No se pudo crear el usuario: respuesta inválida del servidor')
+      }
+      
+      console.log('Usuario creado en auth.users:', data.user.id)
+      
+      // 2. Sign in the user to get a valid session
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim()
+      })
+      
+      if (signInError) {
+        console.error('Error al iniciar sesión:', signInError)
+        throw new Error('Error al iniciar sesión: ' + signInError.message)
+      }
+      
+      if (!session) {
+        throw new Error('No se pudo iniciar sesión: sesión no disponible')
+      }
+      
+      // 3. Create the profile using a server function
+      const response = await fetch('/functions/v1/create-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          full_name: fullName.trim(),
+          ...(phone?.trim() ? { phone: phone.trim() } : {})
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        console.error('Error al crear perfil:', result.error)
+        throw new Error(result.error?.message || 'Error al crear el perfil')
+      }
+      
+      console.log('Perfil creado exitosamente:', result.data)
+      user.value = data.user
+      return { success: true, user: data.user }
+    } catch (err: any) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const signIn = async (email: string, password: string) => {
+    loading.value = true
+    error.value = ''
+    
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      
+      if (signInError) throw signInError
+      
+      user.value = data.user
+      return { success: true }
+    } catch (err: any) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const signOut = async () => {
+    loading.value = true
+    
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      
+      user.value = null
+      return { success: true }
+    } catch (err: any) {
+      error.value = err.message
+      return { success: false, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      user.value = currentUser
+      return currentUser
+    } catch (err) {
+      console.error('Error getting current user:', err)
+      return null
+    }
+  }
+
+  const isAdmin = async (): Promise<boolean> => {
+    if (!user.value) return false
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.value.id)
+        .single()
+      
+      if (error) throw error
+      
+      return data?.is_admin || false
+    } catch (err) {
+      console.error('Error checking admin status:', err)
+      return false
+    }
+  }
+
+  // Escuchar cambios de autenticación
+  supabase.auth.onAuthStateChange((event, session) => {
+    user.value = session?.user || null
+  })
+
+  return {
+    user: user.value,
+    loading,
+    error,
+    signUp,
+    signIn,
+    signOut,
+    getCurrentUser,
+    isAdmin
+  }
+}

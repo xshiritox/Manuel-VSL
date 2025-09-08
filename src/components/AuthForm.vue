@@ -1,0 +1,199 @@
+<template>
+  <div class="card p-8 max-w-md mx-auto animate-slide-up">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold mb-2" style="color: var(--color-black);">
+        {{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}
+      </h2>
+      <p style="color: var(--color-gray-600);">
+        {{ isLogin ? 'Accede a tu cuenta para agendar citas' : 'Regístrate para acceder al calendario' }}
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form @submit.prevent="handleSubmit" class="space-y-6">
+      <!-- Full Name (only for register) -->
+      <div v-if="!isLogin">
+        <label for="fullName" class="form-label">
+          Nombre Completo
+        </label>
+        <input
+          id="fullName"
+          v-model="form.fullName"
+          type="text"
+          required
+          class="input-field"
+          placeholder="Tu nombre completo"
+        />
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="form-label">
+          Correo Electrónico
+        </label>
+        <input
+          id="email"
+          v-model="form.email"
+          type="email"
+          required
+          class="input-field"
+          placeholder="tu@email.com"
+        />
+      </div>
+
+      <!-- Phone (only for register) -->
+      <div v-if="!isLogin">
+        <label for="phone" class="form-label">
+          Teléfono <span class="text-gray-500">(Opcional)</span>
+        </label>
+        <input
+          id="phone"
+          v-model="form.phone"
+          type="tel"
+          class="input-field"
+          placeholder="Número de teléfono (opcional)"
+        />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="form-label">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          v-model="form.password"
+          type="password"
+          required
+          minlength="6"
+          class="input-field"
+          placeholder="Mínimo 6 caracteres"
+        />
+      </div>
+
+      <!-- Error message -->
+      <div v-if="error" class="alert alert-error">
+        <div class="flex items-center">
+          <AlertCircle class="alert-icon" style="color: var(--color-red-500);" />
+          <span class="text-sm">{{ error }}</span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        :disabled="loading"
+        class="w-full btn btn-primary"
+        :style="{ opacity: loading ? '0.5' : '1', cursor: loading ? 'not-allowed' : 'pointer' }"
+      >
+        <div v-if="loading" class="flex items-center justify-center">
+          <div class="spinner-sm mr-2" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div>
+          Procesando...
+        </div>
+        <span v-else>
+          {{ isLogin ? 'Iniciar Sesión' : 'Crear Cuenta' }}
+        </span>
+      </button>
+    </form>
+
+    <!-- Toggle between login/register -->
+    <div class="mt-6 text-center">
+      <button
+        @click="isLogin = !isLogin"
+        class="font-semibold transition-colors"
+        style="color: var(--color-blue); background: none; border: none; cursor: pointer;"
+        @mouseover="$event.target.style.color = 'var(--color-blue-hover)'"
+        @mouseout="$event.target.style.color = 'var(--color-blue)'"
+      >
+        {{ isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
+      </button>
+    </div>
+
+    <!-- Success message -->
+    <div v-if="successMessage" class="mt-4 alert alert-success">
+      <div class="flex items-center">
+        <CheckCircle class="alert-icon" style="color: var(--color-green-500);" />
+        <span class="text-sm">{{ successMessage }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import { AlertCircle, CheckCircle } from 'lucide-vue-next'
+import { useAuth } from '../composables/useAuth'
+
+const emit = defineEmits(['authSuccess'])
+
+const { signUp, signIn, loading, error } = useAuth()
+
+const isLogin = ref(true)
+const successMessage = ref('')
+
+const form = reactive({
+  email: '',
+  password: '',
+  fullName: '',
+  phone: ''
+})
+
+const resetForm = () => {
+  form.email = ''
+  form.password = ''
+  form.fullName = ''
+  form.phone = ''
+}
+
+const handleSubmit = async () => {
+  successMessage.value = ''
+  error.value = ''
+  
+  try {
+    if (isLogin.value) {
+      const result = await signIn(form.email, form.password)
+      
+      if (result.success) {
+        successMessage.value = '¡Bienvenido de vuelta!'
+        emit('authSuccess')
+        resetForm()
+      }
+    } else {
+      // Validación básica del formulario
+      if (!form.fullName?.trim()) {
+        throw new Error('Por favor ingresa tu nombre completo')
+      }
+      
+      if (!form.email?.trim()) {
+        throw new Error('Por favor ingresa tu correo electrónico')
+      }
+      
+      if (!form.password) {
+        throw new Error('Por favor ingresa una contraseña')
+      }
+      
+      // El teléfono es opcional, así que no necesita validación
+      const phoneNumber = form.phone?.trim() || undefined
+      
+      const result = await signUp(
+        form.email.trim(),
+        form.password,
+        form.fullName.trim(),
+        phoneNumber
+      )
+      
+      if (result.success) {
+        successMessage.value = '¡Cuenta creada exitosamente!'
+        emit('authSuccess')
+        resetForm()
+      } else if (result.error) {
+        throw new Error(result.error)
+      }
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Ocurrió un error al procesar la solicitud'
+    console.error('Error en el formulario:', err)
+  }
+}
+</script>
