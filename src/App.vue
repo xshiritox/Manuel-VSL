@@ -107,14 +107,6 @@
         <p>&copy; 2025 VSL Professional. Todos los derechos reservados.</p>
       </footer>
     </div>
-
-    <!-- Loading Overlay -->
-    <div v-if="isLoading" class="overlay">
-      <div class="overlay-content">
-        <div class="spinner mx-auto mb-4"></div>
-        <p class="text-lg font-semibold" style="color: var(--color-gray-700);">Cargando...</p>
-      </div>
-    </div>
   </div>
 </template>
 
