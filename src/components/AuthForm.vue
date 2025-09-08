@@ -184,8 +184,12 @@ const handleSubmit = async () => {
       )
       
       if (result.success) {
-        successMessage.value = '¡Cuenta creada exitosamente!'
-        emit('authSuccess')
+        if (result.emailConfirmationRequired) {
+          successMessage.value = '¡Cuenta creada exitosamente! Por favor revisa tu correo electrónico y haz clic en el enlace de confirmación para activar tu cuenta.'
+        } else {
+          successMessage.value = '¡Cuenta creada exitosamente!'
+          emit('authSuccess')
+        }
         resetForm()
       } else if (result.error) {
         throw new Error(result.error)

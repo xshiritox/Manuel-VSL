@@ -37,43 +37,13 @@ export function useAuth() {
       
       console.log('Usuario creado en auth.users:', data.user.id)
       
-      // 2. Sign in the user to get a valid session
-      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim()
-      })
-      
-      if (signInError) {
-        console.error('Error al iniciar sesión:', signInError)
-        throw new Error('Error al iniciar sesión: ' + signInError.message)
+      // Check if email confirmation is required
+      if (!data.session) {
+        // Email confirmation is required
+        return { success: true, emailConfirmationRequired: true }
       }
       
-      if (!session) {
-        throw new Error('No se pudo iniciar sesión: sesión no disponible')
-      }
-      
-      // 3. Create the profile using a server function
-      const response = await fetch('/functions/v1/create-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          full_name: fullName.trim(),
-          ...(phone?.trim() ? { phone: phone.trim() } : {})
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (!response.ok) {
-        console.error('Error al crear perfil:', result.error)
-        throw new Error(result.error?.message || 'Error al crear el perfil')
-      }
-      
-      console.log('Perfil creado exitosamente:', result.data)
+      // If we have a session, the user is automatically signed in
       user.value = data.user
       return { success: true, user: data.user }
     } catch (err: any) {
