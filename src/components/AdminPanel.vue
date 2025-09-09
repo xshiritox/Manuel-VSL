@@ -143,8 +143,8 @@
                     @click="updateStatus(appointment.id, 'confirmed')"
                     class="transition-colors"
                     style="color: var(--color-green-600); background: none; border: none; cursor: pointer;"
-                    @mouseover="$event.target.style.color = 'var(--color-green-700)'"
-                    @mouseout="$event.target.style.color = 'var(--color-green-600)'"
+                    @mouseover="(e: MouseEvent) => (e.target as HTMLElement).style.color = 'var(--color-green-700)'"
+                    @mouseout="(e: MouseEvent) => (e.target as HTMLElement).style.color = 'var(--color-green-600)'"
                     :disabled="loading"
                   >
                     Confirmar
@@ -154,8 +154,8 @@
                     @click="updateStatus(appointment.id, 'cancelled')"
                     class="transition-colors"
                     style="color: var(--color-red-600); background: none; border: none; cursor: pointer;"
-                    @mouseover="$event.target.style.color = 'var(--color-red-700)'"
-                    @mouseout="$event.target.style.color = 'var(--color-red-600)'"
+                    @mouseover="(e: MouseEvent) => (e.target as HTMLElement).style.color = 'var(--color-red-700)'"
+                    @mouseout="(e: MouseEvent) => (e.target as HTMLElement).style.color = 'var(--color-red-600)'"
                     :disabled="loading"
                   >
                     Cancelar

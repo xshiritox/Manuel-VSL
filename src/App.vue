@@ -104,7 +104,7 @@
 
       <!-- Footer -->
       <footer class="mt-16 text-center" style="color: var(--color-gray-500);">
-        <p>&copy; 2025 VSL Professional. Todos los derechos reservados.</p>
+        <p>&copy; 2025 Manuel Luis Sera. Todos los derechos reservados.</p>
       </footer>
     </div>
   </div>
