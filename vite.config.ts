@@ -18,7 +18,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-vue-next'],
   },
-  define: {
-    'process.env': {}
-  }
 })
