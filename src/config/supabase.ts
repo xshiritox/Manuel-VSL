@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Importar configuración directamente para evitar problemas de ruta
-const SUPABASE_URL = 'https://hzsdqqmbsnvhgauaecvb.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6c2RxcW1ic252aGdhdWFlY3ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyOTYxNTcsImV4cCI6MjA3Mjg3MjE1N30.mj-s9yE-kqK9s7EMTXG3F1pwPZ_6shTWVpcrzxg_X3o'
+// Configuración de Supabase usando variables de entorno
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://hzsdqqmbsnvhgauaecvb.supabase.co'
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6c2RxcW1ic252aGdhdWFlY3ZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyOTYxNTcsImV4cCI6MjA3Mjg3MjE1N30.mj-s9yE-kqK9s7EMTXG3F1pwPZ_6shTWVpcrzxg_X3o'
 
 // Configuración mejorada del cliente Supabase
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -10,7 +10,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    redirectTo: window.location.origin
+    redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined
   }
 })
 
