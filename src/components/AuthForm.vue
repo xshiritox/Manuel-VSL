@@ -100,11 +100,12 @@
     <!-- Toggle between login/register -->
     <div class="mt-6 text-center">
       <button
+        ref="toggleButton"
         @click="isLogin = !isLogin"
         class="font-semibold transition-colors"
-        style="color: var(--color-blue); background: none; border: none; cursor: pointer;"
-        @mouseover="$event.target.style.color = 'var(--color-blue-hover)'"
-        @mouseout="$event.target.style.color = 'var(--color-blue)'"
+        :style="{ color: toggleHover ? 'var(--color-blue-hover)' : 'var(--color-blue)', background: 'none', border: 'none', cursor: 'pointer' }"
+        @mouseover="toggleHover = true"
+        @mouseout="toggleHover = false"
       >
         {{ isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
       </button>
@@ -122,6 +123,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+
+const toggleHover = ref(false)
 import { AlertCircle, CheckCircle } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
