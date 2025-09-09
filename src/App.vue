@@ -11,6 +11,33 @@
       
       <!-- Header Section -->
       <header class="text-center mb-12 lg:mb-16 animate-fade-in">
+        <div class="text-4xl lg:text-5xl font-bold mb-4" style="
+          color: var(--color-blue);
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+          letter-spacing: 0.05em;
+          position: relative;
+          display: inline-block;
+          padding-bottom: 8px;
+        ">
+          <span style="
+            position: relative;
+            z-index: 1;
+            padding: 0 8px;
+          ">
+            Manuel Luis Sera
+          </span>
+          <span style="
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-blue), var(--color-gold));
+            border-radius: 2px;
+          "></span>
+        </div>
         <h1 class="text-4xl lg:text-6xl font-bold mb-6 leading-tight" style="color: var(--color-black);">
           Descubre el <span style="color: var(--color-blue);">Secreto</span> que
           <br class="lg:block hidden">
