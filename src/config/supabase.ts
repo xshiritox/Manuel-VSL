@@ -9,15 +9,14 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined
+    detectSessionInUrl: true
   }
 })
 
 // Verificar conexión
 const checkConnection = async () => {
   try {
-    const { data, error } = await supabase.from('profiles').select('*').limit(1)
+    const { error } = await supabase.from('profiles').select('*').limit(1)
     if (error) console.error('Error de conexión a Supabase:', error)
     else console.log('Conexión a Supabase exitosa')
   } catch (err) {

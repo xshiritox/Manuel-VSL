@@ -7,7 +7,7 @@ const loading = ref(false)
 const error = ref<string>('')
 
 export function useAppointments() {
-  const createAppointment = async (date: string, time: string, notes?: string) => {
+  const createAppointment = async (date: string, time: string = '', notes?: string) => {
     loading.value = true
     error.value = ''
     
@@ -22,7 +22,7 @@ export function useAppointments() {
           {
             user_id: user.id,
             date,
-            time,
+            time: time || null,
             status: 'pending',
             notes
           }
