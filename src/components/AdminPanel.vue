@@ -120,9 +120,6 @@
                 <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
                   {{ formatDate(appointment.date) }}
                 </td>
-                <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
-                  {{ formatTime(appointment.time) }}
-                </td>
                 <td class="whitespace-nowrap">
                   <span
                     class="badge"
@@ -282,7 +279,21 @@ const stats = computed(() => {
 
 const loadAppointments = async () => {
   try {
-    const { data, error } = await supabase.from('appointments').select('*').order('date', { ascending: true })
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        profile:profiles (
+          id,
+          email,
+          full_name,
+          phone,
+          created_at,
+          is_admin
+        )
+      `)
+      .order('date', { ascending: true })
+    
     if (error) throw error
     appointments.value = data || []
   } catch (error) {
@@ -319,16 +330,6 @@ const formatDate = (dateString: string) => {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
-  })
-}
-
-const formatTime = (timeString: string) => {
-  const [hours, minutes] = timeString.split(':')
-  const date = new Date()
-  date.setHours(parseInt(hours), parseInt(minutes))
-  return date.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
 

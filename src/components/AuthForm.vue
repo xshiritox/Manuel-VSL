@@ -165,6 +165,25 @@ const handleSubmit = async () => {
   error.value = ''
   
   try {
+    // Validación básica del formulario
+    if (!form.email?.trim()) {
+      throw new Error('Por favor ingresa tu correo electrónico')
+    }
+    
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email.trim())) {
+      throw new Error('Por favor ingresa un correo electrónico válido')
+    }
+    
+    if (!form.password) {
+      throw new Error('Por favor ingresa una contraseña')
+    }
+    
+    if (form.password.length < 6) {
+      throw new Error('La contraseña debe tener al menos 6 caracteres')
+    }
+    
     if (isLogin.value) {
       const result = await signIn(form.email, form.password)
       
@@ -174,17 +193,13 @@ const handleSubmit = async () => {
         resetForm()
       }
     } else {
-      // Validación básica del formulario
+      // Validación adicional para registro
       if (!form.fullName?.trim()) {
         throw new Error('Por favor ingresa tu nombre completo')
       }
       
-      if (!form.email?.trim()) {
-        throw new Error('Por favor ingresa tu correo electrónico')
-      }
-      
-      if (!form.password) {
-        throw new Error('Por favor ingresa una contraseña')
+      if (form.fullName.trim().length < 2) {
+        throw new Error('El nombre completo debe tener al menos 2 caracteres')
       }
       
       // El teléfono es opcional, así que no necesita validación

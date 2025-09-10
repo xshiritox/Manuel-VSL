@@ -14,8 +14,13 @@ export function useAuth() {
     try {
       console.log('Iniciando registro para:', email)
       
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('La conexión está tardando demasiado. Por favor, intenta de nuevo.')), 15000)
+      })
+      
       // 1. First create the user in auth.users
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const authPromise = supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
         options: {
@@ -26,9 +31,21 @@ export function useAuth() {
         }
       })
       
+      const { data, error: signUpError } = await Promise.race([authPromise, timeoutPromise]) as any
+      
       if (signUpError) {
         console.error('Error en signUp:', signUpError)
-        throw new Error('Error al crear el usuario: ' + signUpError.message)
+        
+        // Handle specific error messages
+        if (signUpError.message.includes('User already registered')) {
+          throw new Error('Este correo electrónico ya está registrado. Por favor, inicia sesión o usa otro correo.')
+        } else if (signUpError.message.includes('password')) {
+          throw new Error('La contraseña debe tener al menos 6 caracteres')
+        } else if (signUpError.message.includes('invalid email')) {
+          throw new Error('Por favor, ingresa un correo electrónico válido')
+        } else {
+          throw new Error('Error al crear el usuario: ' + signUpError.message)
+        }
       }
       
       if (!data.user) {
@@ -47,6 +64,7 @@ export function useAuth() {
       user.value = data.user
       return { success: true, user: data.user }
     } catch (err: any) {
+      console.error('Error en signUp:', err)
       error.value = err.message
       return { success: false, error: err.message }
     } finally {
@@ -59,17 +77,54 @@ export function useAuth() {
     error.value = ''
     
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      console.log('Iniciando signIn para:', email)
       
-      if (signInError) throw signInError
+      // Create AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+        console.log('Timeout alcanzado, abortando petición')
+      }, 15000)
       
-      user.value = data.user
-      return { success: true }
+      try {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim()
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (signInError) {
+          console.error('Error en signIn:', signInError)
+          
+          // Handle specific error messages
+          if (signInError.message.includes('Credenciales inválidas')) {
+            throw new Error('Correo electrónico o contraseña incorrectos')
+          } else if (signInError.message.includes('Email no confirmado')) {
+            throw new Error('Por favor, confirma tu correo electrónico antes de iniciar sesión')
+          } else if (signInError.message.includes('Demasiados intentos')) {
+            throw new Error('Demasiados intentos. Por favor, espera unos minutos e intenta de nuevo')
+          } else {
+            throw new Error(signInError.message || 'Error al iniciar sesión')
+          }
+        }
+        
+        if (!data.user) {
+          throw new Error('No se pudo iniciar sesión. Por favor, intenta de nuevo.')
+        }
+        
+        user.value = data.user
+        console.log('Login exitoso para:', data.user.email)
+        return { success: true }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('La conexión está tardando demasiado. Por favor, intenta de nuevo.')
+        }
+        throw err
+      }
     } catch (err: any) {
-      error.value = err.message
+      console.error('Error en signIn:', err)
+      error.value = err.message || 'Ocurrió un error al iniciar sesión'
       return { success: false, error: err.message }
     } finally {
       loading.value = false
