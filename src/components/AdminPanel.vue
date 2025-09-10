@@ -86,9 +86,6 @@
                   Fecha
                 </th>
                 <th>
-                  Hora
-                </th>
-                <th>
                   Estado
                 </th>
                 <th>
