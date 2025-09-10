@@ -137,7 +137,7 @@ const resetForm = () => {
 const handleSubmit = async () => {
   successMessage.value = ''
   
-  const result = await createAppointment(form.date, '', form.notes)
+  const result = await createAppointment(form.date, form.notes)
   
   if (result.success) {
     successMessage.value = '¡Cita agendada exitosamente! Te contactaremos pronto para confirmar los detalles.'

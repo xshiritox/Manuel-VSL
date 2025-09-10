@@ -215,21 +215,3 @@ const handleSubmit = async () => {
   }
 }
 </script>
-
-<style scoped>
-.password-toggle-btn {
-  position: absolute;
-  right: 4px;
-  bottom: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #6b7280;
-  transition: color 0.2s ease;
-  z-index: 10;
-}
-
-.password-toggle-btn:hover {
-  color: #374151;
-}
-</style>
