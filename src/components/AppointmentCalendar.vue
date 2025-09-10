@@ -6,7 +6,7 @@
         Agendar Cita
       </h2>
       <p style="color: var(--color-gray-600);">
-        Selecciona la fecha y hora que mejor se adapte a tu agenda
+        Selecciona la fecha que mejor se adapte a tu agenda
       </p>
     </div>
 
@@ -25,24 +25,6 @@
           :min="minDate"
           class="input-field"
         />
-      </div>
-
-      <!-- Time Selection -->
-      <div>
-        <label for="time" class="form-label">
-          Hora
-        </label>
-        <select
-          id="time"
-          v-model="form.time"
-          required
-          class="input-field"
-        >
-          <option value="">Selecciona una hora</option>
-          <option v-for="time in availableTimes" :key="time" :value="time">
-            {{ formatTime(time) }}
-          </option>
-        </select>
       </div>
 
       <!-- Notes -->
@@ -107,9 +89,6 @@
             <div class="font-semibold" style="color: var(--color-gray-900);">
               {{ formatDate(appointment.date) }}
             </div>
-            <div class="text-sm" style="color: var(--color-gray-600);">
-              {{ formatTime(appointment.time) }}
-            </div>
             <div v-if="appointment.notes" class="text-sm mt-1" style="color: var(--color-gray-600);">
               {{ appointment.notes }}
             </div>
@@ -141,16 +120,8 @@ const userAppointments = ref<Appointment[]>([])
 
 const form = reactive({
   date: '',
-  time: '',
   notes: ''
 })
-
-// Available time slots
-const availableTimes = [
-  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '12:00', '12:30', '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00', '17:30', '18:00'
-]
 
 // Minimum date (today)
 const minDate = computed(() => {
@@ -160,14 +131,13 @@ const minDate = computed(() => {
 
 const resetForm = () => {
   form.date = ''
-  form.time = ''
   form.notes = ''
 }
 
 const handleSubmit = async () => {
   successMessage.value = ''
   
-  const result = await createAppointment(form.date, form.time, form.notes)
+  const result = await createAppointment(form.date, '', form.notes)
   
   if (result.success) {
     successMessage.value = '¡Cita agendada exitosamente! Te contactaremos pronto para confirmar los detalles.'
@@ -190,16 +160,6 @@ const formatDate = (dateString: string) => {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
-  })
-}
-
-const formatTime = (timeString: string) => {
-  const [hours, minutes] = timeString.split(':')
-  const date = new Date()
-  date.setHours(parseInt(hours), parseInt(minutes))
-  return date.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
 

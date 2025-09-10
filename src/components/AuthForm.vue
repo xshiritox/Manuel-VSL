@@ -61,15 +61,25 @@
         <label for="password" class="form-label">
           Contraseña
         </label>
-        <input
-          id="password"
-          v-model="form.password"
-          type="password"
-          required
-          minlength="6"
-          class="input-field"
-          placeholder="Mínimo 6 caracteres"
-        />
+        <div class="relative">
+          <input
+            id="password"
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            required
+            minlength="6"
+            class="input-field pr-8"
+            placeholder="Mínimo 6 caracteres"
+          />
+          <button
+            type="button"
+            @click="showPassword = !showPassword"
+            class="password-toggle-btn"
+          >
+            <Eye v-if="!showPassword" class="h-5 w-5" />
+            <EyeOff v-else class="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <!-- Error message -->
@@ -125,7 +135,8 @@
 import { ref, reactive } from 'vue'
 
 const toggleHover = ref(false)
-import { AlertCircle, CheckCircle } from 'lucide-vue-next'
+const showPassword = ref(false)
+import { AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 
 const emit = defineEmits(['authSuccess'])
@@ -204,3 +215,21 @@ const handleSubmit = async () => {
   }
 }
 </script>
+
+<style scoped>
+.password-toggle-btn {
+  position: absolute;
+  right: 4px;
+  bottom: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.password-toggle-btn:hover {
+  color: #374151;
+}
+</style>
