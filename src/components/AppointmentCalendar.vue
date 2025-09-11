@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-8 max-w-2xl mx-auto animate-slide-up">
+  <div class="card p-8 max-w-2xl mx-auto animate-slide-up" style="overflow: visible;">
     <!-- Header -->
     <div class="text-center mb-8">
       <h2 class="text-3xl font-bold mb-2" style="color: var(--color-black);">
@@ -76,9 +76,9 @@
     </div>
 
     <!-- User's Appointments -->
-    <div v-if="userAppointments.length > 0" class="mt-8">
+    <div class="mt-8">
       <h3 class="text-xl font-semibold mb-4" style="color: var(--color-black);">Mis Citas</h3>
-      <div class="space-y-3">
+      <div v-if="userAppointments.length > 0" class="space-y-3">
         <div
           v-for="appointment in userAppointments"
           :key="appointment.id"
@@ -102,6 +102,11 @@
             </span>
           </div>
         </div>
+      </div>
+      <!-- Empty state for appointments -->
+      <div v-else class="text-center py-6 bg-gray-50" style="border-radius: var(--border-radius-lg);">
+        <Calendar style="width: 32px; height: 32px; color: var(--color-gray-400); margin: 0 auto 12px;" />
+        <p class="text-sm" style="color: var(--color-gray-500);">No tienes citas programadas</p>
       </div>
     </div>
   </div>
@@ -174,7 +179,9 @@ const getStatusText = (status: string) => {
   }
 }
 
-onMounted(() => {
-  loadUserAppointments()
+onMounted(async () => {
+  console.log('Componente montado, cargando citas...')
+  await loadUserAppointments()
+  console.log('Citas cargadas:', userAppointments.value)
 })
 </script>

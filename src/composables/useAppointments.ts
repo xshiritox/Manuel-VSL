@@ -60,9 +60,11 @@ export function useAppointments() {
       if (fetchError) throw fetchError
       
       appointments.value = data || []
+      console.log('Citas del usuario cargadas:', data)
       return { success: true, data }
     } catch (err: any) {
       error.value = err.message
+      console.error('Error al cargar citas del usuario:', err.message)
       return { success: false, error: err.message }
     } finally {
       loading.value = false
