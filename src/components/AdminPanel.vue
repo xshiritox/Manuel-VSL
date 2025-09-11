@@ -258,7 +258,7 @@ import type { Appointment } from '../config/supabase'
 
 const emit = defineEmits(['signOut'])
 
-const { updateAppointmentStatus, loading } = useAppointments()
+const { updateAppointmentStatus, loading, appointments: appointmentsRef, getAllAppointments } = useAppointments()
 
 const appointments = ref<Appointment[]>([])
 const users = ref<any[]>([])
@@ -279,23 +279,13 @@ const stats = computed(() => {
 
 const loadAppointments = async () => {
   try {
-    const { data, error } = await supabase
-      .from('appointments')
-      .select(`
-        *,
-        profile:profiles (
-          id,
-          email,
-          full_name,
-          phone,
-          created_at,
-          is_admin
-        )
-      `)
-      .order('date', { ascending: true })
+    const result = await getAllAppointments()
     
-    if (error) throw error
-    appointments.value = data || []
+    if (result.success) {
+      appointments.value = appointmentsRef.value
+    } else {
+      throw new Error(result.error)
+    }
   } catch (error) {
     console.error('Error loading appointments:', error)
   }
@@ -321,6 +311,8 @@ const updateStatus = async (appointmentId: string, status: 'confirmed' | 'cancel
   const result = await updateAppointmentStatus(appointmentId, status)
   if (result.success) {
     await loadAppointments()
+  } else {
+    console.error('Error updating appointment status:', result.error)
   }
 }
 
