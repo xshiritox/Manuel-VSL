@@ -146,7 +146,7 @@ import AuthForm from './components/AuthForm.vue'
 import AppointmentCalendar from './components/AppointmentCalendar.vue'
 import AdminPanel from './components/AdminPanel.vue'
 import { useAuth } from './composables/useAuth'
-import { supabase } from './config/supabase'
+import { supabase, checkConnection } from './config/supabase'
 
 const { getCurrentUser, signOut, isAdmin } = useAuth()
 
@@ -224,15 +224,38 @@ onMounted(() => {
   
   handleEmailConfirmation()
   loadCurrentUser()
+  checkConnection() // Verificar conexión con Supabase y tabla de citas
   
   // Listen for auth state changes (including email confirmation)
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       await loadCurrentUser()
-    } else if (event === 'SIGNED_OUT') {
+    } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      if (event === 'SIGNED_OUT') {
+        currentUser.value = null
+        isUserAdmin.value = false
+        showAdminPanel.value = false
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed successfully')
+        // Recargar el usuario actual después de refrescar el token
+        await loadCurrentUser()
+      }
+    }
+  })
+  
+  // Manejar errores de autenticación
+  window.addEventListener('unhandledrejection', async (event) => {
+    const error = event.reason
+    if (error?.message?.includes('Invalid Refresh Token') || 
+        error?.message?.includes('Refresh Token Not Found')) {
+      console.error('Error de token de actualización:', error)
+      // Intentar cerrar sesión y redirigir al usuario para iniciar sesión nuevamente
+      await signOut()
       currentUser.value = null
       isUserAdmin.value = false
       showAdminPanel.value = false
+      // Opcional: mostrar un mensaje al usuario
+      alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
     }
   })
 })

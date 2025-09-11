@@ -85,9 +85,11 @@ export function useAppointments() {
       if (fetchError) throw fetchError
       
       appointments.value = data || []
+      console.log('Appointments fetched:', data)
       return { success: true, data }
     } catch (err: any) {
       error.value = err.message
+      console.error('Error fetching appointments:', err.message)
       return { success: false, error: err.message }
     } finally {
       loading.value = false

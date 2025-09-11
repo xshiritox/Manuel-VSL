@@ -98,12 +98,17 @@ export function useAuth() {
           console.error('Error en signIn:', signInError)
           
           // Handle specific error messages
-          if (signInError.message.includes('Credenciales inválidas')) {
+          if (signInError.message.includes('Invalid login credentials')) {
             throw new Error('Correo electrónico o contraseña incorrectos')
-          } else if (signInError.message.includes('Email no confirmado')) {
+          } else if (signInError.message.includes('Email not confirmed')) {
             throw new Error('Por favor, confirma tu correo electrónico antes de iniciar sesión')
-          } else if (signInError.message.includes('Demasiados intentos')) {
+          } else if (signInError.message.includes('Too many requests')) {
             throw new Error('Demasiados intentos. Por favor, espera unos minutos e intenta de nuevo')
+          } else if (signInError.message.includes('Invalid Refresh Token') || 
+                     signInError.message.includes('Refresh Token Not Found')) {
+            // Limpiar la sesión local
+            await supabase.auth.signOut()
+            throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
           } else {
             throw new Error(signInError.message || 'Error al iniciar sesión')
           }
@@ -150,7 +155,21 @@ export function useAuth() {
 
   const getCurrentUser = async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      const { data: { user: currentUser }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        if (error.message.includes('Invalid Refresh Token') || 
+            error.message.includes('Refresh Token Not Found')) {
+          console.error('Error de token de actualización:', error)
+          // Limpiar la sesión local
+          await supabase.auth.signOut()
+          user.value = null
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+        } else {
+          throw error
+        }
+      }
+      
       user.value = currentUser
       return currentUser
     } catch (err) {

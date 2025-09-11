@@ -9,16 +9,53 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'manuel-vsl-auth-token',
+    storage: {
+      getItem: (key) => {
+        try {
+          return localStorage.getItem(key);
+        } catch (error) {
+          console.error('Error al obtener la sesión:', error);
+          return null;
+        }
+      },
+      setItem: (key, value) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch (error) {
+          console.error('Error al guardar la sesión:', error);
+        }
+      },
+      removeItem: (key) => {
+        try {
+          localStorage.removeItem(key);
+        } catch (error) {
+          console.error('Error al eliminar la sesión:', error);
+        }
+      }
+    }
   }
 })
 
 // Verificar conexión
-const checkConnection = async () => {
+export const checkConnection = async () => {
   try {
     const { error } = await supabase.from('profiles').select('*').limit(1)
     if (error) console.error('Error de conexión a Supabase:', error)
     else console.log('Conexión a Supabase exitosa')
+    
+    // Verificar tabla de citas
+    const { data: appointmentsData, error: appointmentsError } = await supabase
+      .from('appointments')
+      .select('count')
+      .limit(1)
+    
+    if (appointmentsError) {
+      console.error('Error al acceder a la tabla appointments:', appointmentsError)
+    } else {
+      console.log('Tabla appointments accesible, registros encontrados:', appointmentsData)
+    }
   } catch (err) {
     console.error('Error inesperado al conectar con Supabase:', err)
   }

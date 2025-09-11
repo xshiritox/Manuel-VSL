@@ -250,7 +250,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Users, Calendar, Clock, CheckCircle, LogOut } from 'lucide-vue-next'
 import { useAppointments } from '../composables/useAppointments'
 import { supabase } from '../config/supabase'
@@ -281,8 +281,9 @@ const loadAppointments = async () => {
   try {
     const result = await getAllAppointments()
     
-    if (result.success) {
-      appointments.value = appointmentsRef.value
+    if (result.success && result.data) {
+      appointments.value = result.data
+      console.log('Citas cargadas:', appointments.value)
     } else {
       throw new Error(result.error)
     }
@@ -308,11 +309,19 @@ const loadUsers = async () => {
 }
 
 const updateStatus = async (appointmentId: string, status: 'confirmed' | 'cancelled') => {
-  const result = await updateAppointmentStatus(appointmentId, status)
-  if (result.success) {
-    await loadAppointments()
-  } else {
-    console.error('Error updating appointment status:', result.error)
+  try {
+    console.log(`Actualizando cita ${appointmentId} a estado: ${status}`)
+    const result = await updateAppointmentStatus(appointmentId, status)
+    
+    if (result.success) {
+      console.log('Estado de cita actualizado correctamente')
+      // Recargar las citas para reflejar el cambio
+      await loadAppointments()
+    } else {
+      console.error('Error al actualizar estado de cita:', result.error)
+    }
+  } catch (error) {
+    console.error('Error inesperado al actualizar estado de cita:', error)
   }
 }
 
@@ -346,7 +355,18 @@ const getInitials = (name: string) => {
 }
 
 onMounted(() => {
+  console.log('AdminPanel montado, cargando datos...')
   loadAppointments()
   loadUsers()
+  
+  // Configurar un intervalo para recargar las citas cada 30 segundos
+  const interval = setInterval(() => {
+    loadAppointments()
+  }, 30000)
+  
+  // Limpiar el intervalo cuando el componente se desmonte
+  onUnmounted(() => {
+    clearInterval(interval)
+  })
 })
 </script>
