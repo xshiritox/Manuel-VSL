@@ -119,6 +119,9 @@
                 </td>
                 <td class="whitespace-nowrap text-sm" style="color: var(--color-gray-900);">
                   {{ formatDate(appointment.date) }}
+                  <span v-if="appointment.time" class="ml-2">
+                    {{ formatTime(appointment.time) }}
+                  </span>
                 </td>
                 <td class="whitespace-nowrap">
                   <span
@@ -332,6 +335,15 @@ const formatDate = (dateString: string) => {
     month: '2-digit',
     year: 'numeric'
   })
+}
+
+const formatTime = (timeString: string) => {
+  // Formatear la hora en formato 12 horas (AM/PM)
+  const [hours, minutes] = timeString.split(':')
+  const hour = parseInt(hours)
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const hour12 = hour % 12 || 12
+  return `${hour12}:${minutes} ${ampm}`
 }
 
 const getStatusText = (status: string) => {

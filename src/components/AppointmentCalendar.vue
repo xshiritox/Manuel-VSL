@@ -26,6 +26,20 @@
           class="input-field"
         />
       </div>
+      
+      <!-- Time Selection -->
+      <div>
+        <label for="time" class="form-label">
+          Hora
+        </label>
+        <input
+          id="time"
+          v-model="form.time"
+          type="time"
+          required
+          class="input-field"
+        />
+      </div>
 
       <!-- Notes -->
       <div>
@@ -88,6 +102,9 @@
           <div>
             <div class="font-semibold" style="color: var(--color-gray-900);">
               {{ formatDate(appointment.date) }}
+              <span v-if="appointment.time" class="ml-2">
+                a las {{ formatTime(appointment.time) }}
+              </span>
             </div>
             <div v-if="appointment.notes" class="text-sm mt-1" style="color: var(--color-gray-600);">
               {{ appointment.notes }}
@@ -125,6 +142,7 @@ const userAppointments = ref<Appointment[]>([])
 
 const form = reactive({
   date: '',
+  time: '',
   notes: ''
 })
 
@@ -136,13 +154,14 @@ const minDate = computed(() => {
 
 const resetForm = () => {
   form.date = ''
+  form.time = ''
   form.notes = ''
 }
 
 const handleSubmit = async () => {
   successMessage.value = ''
   
-  const result = await createAppointment(form.date, form.notes)
+  const result = await createAppointment(form.date, form.time, form.notes)
   
   if (result.success) {
     successMessage.value = '¡Cita agendada exitosamente! Te contactaremos pronto para confirmar los detalles.'
@@ -166,6 +185,15 @@ const formatDate = (dateString: string) => {
     month: 'long',
     day: 'numeric'
   })
+}
+
+const formatTime = (timeString: string) => {
+  // Formatear la hora en formato 12 horas (AM/PM)
+  const [hours, minutes] = timeString.split(':')
+  const hour = parseInt(hours)
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const hour12 = hour % 12 || 12
+  return `${hour12}:${minutes} ${ampm}`
 }
 
 const getStatusText = (status: string) => {
